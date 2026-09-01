@@ -8,7 +8,8 @@ text ("Here's my availability (PDT)… or book directly here: …") from the das
 - Everything lives in a dedicated `scheduling` Postgres schema, so it can share a database
   (Supabase, RDS, a local container) with other apps without touching their tables.
 - Multi-user from day one: every user sees only their own accounts, booking links and bookings.
-  The first account created becomes admin and can close signups.
+  The first account created becomes admin and can close signups, or set `SINGLE_USER=true` to lock
+  the instance to that one account.
 
 ## Getting started (local dev)
 
@@ -93,6 +94,7 @@ Set these on your host. Generate the two secrets with `openssl rand -base64 32`.
 | `GOOGLE_CLIENT_SECRET` | From step 1. |
 | `GOOGLE_LOGIN_ENABLED` | `true` to show "Continue with Google" on the login page. Default `false`. |
 | `CALENDAR_PROVIDER` | `google` (default). |
+| `SINGLE_USER` | `true` to lock the instance to one account. The first signup becomes admin, then every signup path is disabled. Default `false`. |
 
 ### 4. Run it
 
@@ -113,7 +115,8 @@ Put it behind a reverse proxy (Caddy, nginx, Cloudflare Tunnel) that terminates 
 ### 5. First run
 
 1. Open `{APP_URL}/signup` and create your account. The first user becomes admin.
-2. Go to **Dashboard → Admin** and turn off signups if this is a private instance.
+2. Lock it down: set `SINGLE_USER=true` if it is just you, or go to **Dashboard → Admin** and turn off
+   signups if a few people share the instance.
 3. **Dashboard → Calendars → Connect Google account.** Pick the calendars that should block
    availability with the "check for conflicts" switch.
 4. Create an booking link, pick the calendar bookings should land on, and share the `/b/...` link.

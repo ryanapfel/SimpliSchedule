@@ -1,4 +1,4 @@
-import { count, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError } from "better-auth/api";
@@ -6,14 +6,10 @@ import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins";
 import { db } from "@/db";
 import * as schema from "@/db/schema";
-import { appSettings, user } from "@/db/schema";
+import { user } from "@/db/schema";
 import { env } from "@/lib/env";
 import { slugify } from "@/lib/ids";
-
-async function signupsOpen() {
-  const row = await db.query.appSettings.findFirst({ where: eq(appSettings.id, "default") });
-  return row?.signupsOpen ?? true;
-}
+import { signupState } from "./signups";
 
 async function uniqueUsername(email: string) {
   const base = slugify(email.split("@")[0]) || "user";
@@ -48,15 +44,16 @@ export const auth = betterAuth({
     user: {
       create: {
         // The first account on an instance becomes admin; later signups need signups to be open.
+        // Runs for email and Google signups alike.
         before: async (data) => {
-          const [{ value: total }] = await db.select({ value: count() }).from(user);
-          if (total > 0 && !(await signupsOpen())) {
+          const { allowed, first } = await signupState();
+          if (!allowed) {
             throw new APIError("FORBIDDEN", { message: "Signups are closed on this instance." });
           }
           return {
             data: {
               ...data,
-              role: total === 0 ? "admin" : "user",
+              role: first ? "admin" : "user",
               username: await uniqueUsername(data.email),
             },
           };

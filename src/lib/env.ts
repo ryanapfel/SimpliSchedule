@@ -12,6 +12,10 @@ const schema = z.object({
     .optional()
     .transform((v) => v === "true"),
   CALENDAR_PROVIDER: z.enum(["google", "none"]).default("google"),
+  SINGLE_USER: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
 });
 
 export const env = schema.parse(process.env);

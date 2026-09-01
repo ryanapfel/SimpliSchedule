@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/db";
 import { appSettings } from "@/db/schema";
+import { env } from "@/lib/env";
 
 export default async function AdminPage() {
   const me = await requireAdmin();
@@ -25,11 +26,17 @@ export default async function AdminPage() {
       <Card>
         <CardHeader>
           <CardTitle>Signups</CardTitle>
-          <CardDescription>When closed, nobody new can create an account.</CardDescription>
+          <CardDescription>
+            {env.SINGLE_USER
+              ? "Locked: this instance runs with SINGLE_USER=true, so no new accounts can be created."
+              : "When closed, nobody new can create an account."}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <SignupsSwitch open={settings?.signupsOpen ?? true} />
-        </CardContent>
+        {!env.SINGLE_USER && (
+          <CardContent>
+            <SignupsSwitch open={settings?.signupsOpen ?? true} />
+          </CardContent>
+        )}
       </Card>
 
       <Card>
