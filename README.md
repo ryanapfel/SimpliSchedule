@@ -72,6 +72,11 @@ schema) and grab its connection string.
   **Session pooler**. The transaction pooler (port 6543) does not work with migrations.
 - **Neon / RDS / Railway / your own box:** the normal `postgres://user:pass@host:5432/db` URL.
 
+Do not add a `?schema=` parameter to the URL. The app hardcodes the `scheduling` schema in its
+table definitions and migrations, so it never depends on the connection's search path, and a
+`schema=` query parameter is not something Postgres or this driver understands. Just point it at
+the database. If your password has special characters like `#`, `!` or `@`, URL-encode them.
+
 Run the migrations from your machine against the production database:
 
 ```bash
