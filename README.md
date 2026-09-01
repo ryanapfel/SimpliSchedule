@@ -68,8 +68,11 @@ allows `http://` for `localhost`; everything else must be `https://`.
 Any Postgres 14+ works. Create a database (or reuse one; the app only touches the `scheduling`
 schema) and grab its connection string.
 
-- **Supabase:** *Project Settings → Database → Connection string*. Use **Direct connection** or
-  **Session pooler**. The transaction pooler (port 6543) does not work with migrations.
+- **Supabase:** *Project Settings → Database → Connection string*. For the app's `DATABASE_URL` use
+  the **Transaction pooler** (port 6543), especially on Vercel or other serverless hosts: every warm
+  function instance keeps its own connections, and the session pooler's small client limit
+  (15 by default) fills up fast with `max clients reached in session mode`. For running migrations
+  use **Direct connection** or **Session pooler** (port 5432); the transaction pooler rejects them.
 - **Neon / RDS / Railway / your own box:** the normal `postgres://user:pass@host:5432/db` URL.
 
 Do not add a `?schema=` parameter to the URL. The app hardcodes the `scheduling` schema in its
@@ -91,7 +94,7 @@ Set these on your host. Generate the two secrets with `openssl rand -base64 32`.
 
 | Variable | Value |
 | --- | --- |
-| `DATABASE_URL` | Connection string from step 2. |
+| `DATABASE_URL` | Connection string from step 2. On Supabase + serverless, the transaction pooler (port 6543). |
 | `APP_URL` | Public URL, e.g. `https://sched.example.com`. No trailing slash. Must match the redirect URIs from step 1. |
 | `BETTER_AUTH_SECRET` | Random 32+ character string. Changing it logs everyone out. |
 | `ENCRYPTION_KEY` | Random 32+ character string. Encrypts Google refresh tokens. Changing it breaks all connected calendars. |
